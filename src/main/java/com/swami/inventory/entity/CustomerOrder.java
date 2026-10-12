@@ -1,0 +1,57 @@
+package com.swami.inventory.entity;
+
+import jakarta.persistence.*;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+// Named CustomerOrder (table "orders") because ORDER is a reserved SQL keyword
+@Entity
+@Table(name = "orders")
+public class CustomerOrder {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "customer_id")
+    private Customer customer;
+
+    @Column(nullable = false)
+    private LocalDateTime orderDate;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private OrderStatus status;
+
+    @Column(nullable = false, precision = 12, scale = 2)
+    private BigDecimal totalAmount = BigDecimal.ZERO;
+
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<OrderItem> items = new ArrayList<>();
+
+    protected CustomerOrder() {
+    }
+
+    public CustomerOrder(Customer customer) {
+        this.customer = customer;
+        this.orderDate = LocalDateTime.now();
+        this.status = OrderStatus.PLACED;
+    }
+
+    public void addItem(OrderItem item) {
+        item.setOrder(this);
+        items.add(item);
+    }
+
+    public Long getId() { return id; }
+    public Customer getCustomer() { return customer; }
+    public LocalDateTime getOrderDate() { return orderDate; }
+    public OrderStatus getStatus() { return status; }
+    public void setStatus(OrderStatus status) { this.status = status; }
+    public BigDecimal getTotalAmount() { return totalAmount; }
+    public void setTotalAmount(BigDecimal totalAmount) { this.totalAmount = totalAmount; }
+    public List<OrderItem> getItems() { return items; }
+}
